@@ -5,6 +5,8 @@ Future<Block?> showBlockEditorDialog(BuildContext context, Block initialBlock) {
   final nameCtrl = TextEditingController(text: initialBlock.name);
   final bpmCtrl = TextEditingController(text: initialBlock.startBpm.toString());
   final numCtrl = TextEditingController(text: initialBlock.signatureNumerator.toString());
+  final denomCtrl = TextEditingController(text: initialBlock.signatureDenominator.toString());
+  final measuresCtrl = TextEditingController(text: initialBlock.fixedMeasuresCount?.toString() ?? '');
   
   return showDialog<Block>(
     context: context,
@@ -41,7 +43,29 @@ Future<Block?> showBlockEditorDialog(BuildContext context, Block initialBlock) {
               keyboardType: TextInputType.number,
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
-                labelText: 'Temps par mesure (Signature)', 
+                labelText: 'Temps par mesure (Numérateur)', 
+                labelStyle: TextStyle(color: Colors.white54),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+              ),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: denomCtrl,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Unité de temps (Dénominateur : 2, 4, 8, 16)', 
+                labelStyle: TextStyle(color: Colors.white54),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+              ),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: measuresCtrl,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Durée automatique (Nombre de mesures)', 
                 labelStyle: TextStyle(color: Colors.white54),
                 enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
               ),
@@ -54,12 +78,17 @@ Future<Block?> showBlockEditorDialog(BuildContext context, Block initialBlock) {
         TextButton(
           onPressed: () {
             final bpm = int.tryParse(bpmCtrl.text) ?? initialBlock.startBpm;
-            final sig = int.tryParse(numCtrl.text) ?? initialBlock.signatureNumerator;
+            final sigNum = int.tryParse(numCtrl.text) ?? initialBlock.signatureNumerator;
+            final sigDenom = int.tryParse(denomCtrl.text) ?? initialBlock.signatureDenominator;
+            final measures = int.tryParse(measuresCtrl.text);
             Navigator.pop(ctx, initialBlock.copyWith(
               name: nameCtrl.text,
               startBpm: bpm,
               endBpm: bpm,
-              signatureNumerator: sig,
+              signatureNumerator: sigNum,
+              signatureDenominator: sigDenom,
+              fixedMeasuresCount: measures,
+              durationType: (measures != null && measures > 0) ? DurationType.fixedMeasures : DurationType.manualLoop,
             ));
           }, 
           child: const Text('Sauvegarder', style: TextStyle(color: Colors.blueAccent))

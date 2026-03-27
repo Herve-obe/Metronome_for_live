@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:metronome_for_live/core/models/song.dart';
@@ -23,6 +24,7 @@ final metronomeFlashProvider = StateProvider<bool>((ref) => false);
 final metronomeBpmProvider = StateProvider<int>((ref) => 120);
 // Nombre de temps forts par mesure (ex: 4 pour un 4/4)
 final metronomeSignatureNumeratorProvider = StateProvider<int>((ref) => 4);
+final metronomeSignatureDenominatorProvider = StateProvider<int>((ref) => 4);
 // Subdivision du beat (1=Noir, 2=Croche, 3=Triolet, 4=Double)
 final metronomeSubdivisionProvider = StateProvider<int>((ref) => 1);
 
@@ -83,9 +85,12 @@ class MetronomeEngine {
     }
   }
 
-  void setSignature(int numerator) {
+  void setSignature(int numerator, int denominator) {
     if (numerator >= 1 && numerator <= 16) {
       _ref.read(metronomeSignatureNumeratorProvider.notifier).state = numerator;
+    }
+    if ([2, 4, 8, 16].contains(denominator)) {
+      _ref.read(metronomeSignatureDenominatorProvider.notifier).state = denominator;
     }
   }
 
@@ -137,7 +142,7 @@ class MetronomeEngine {
     final block = song.blocks[index];
     
     setBpm(block.startBpm);
-    setSignature(block.signatureNumerator);
+    setSignature(block.signatureNumerator, block.signatureDenominator);
 
     _ref.read(currentMeasureInBlockProvider.notifier).state = 1;
     if (block.durationType == DurationType.fixedMeasures) {
@@ -276,7 +281,7 @@ class MetronomeEngine {
         }
       }
     } catch (e) {
-      print("Erreur audio: $e");
+      debugPrint("Erreur audio: $e");
     }
   }
 

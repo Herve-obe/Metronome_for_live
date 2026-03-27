@@ -15,7 +15,7 @@ Future<void> showImportDialog(BuildContext context, DatabaseRepository repo, Str
       }
   }
 
-  // ignore: use_build_context_synchronously
+  if (!context.mounted) return;
   await showDialog(
     context: context,
     builder: (ctx) => AlertDialog(

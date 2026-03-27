@@ -16,6 +16,16 @@ class DatabaseRepository {
 
   Future<Database> get _db async => await _ref.read(databaseProvider.future);
 
+  // Assainissement absolu de n'importe quel booléen vers entier (FFI Windows crash bypass)
+  Map<String, dynamic> _sanitizeForSql(Map<String, dynamic> map) {
+    return map.map((key, value) {
+      if (value is bool) {
+        return MapEntry(key, value ? 1 : 0);
+      }
+      return MapEntry(key, value);
+    });
+  }
+
   // --- PROJECTS ---
   Future<List<Project>> getProjects() async {
     final db = await _db;
@@ -25,7 +35,10 @@ class DatabaseRepository {
 
   Future<void> saveProject(Project project) async {
     final db = await _db;
-    await db.insert('projects', project.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    final projectJson = project.toJson();
+    projectJson.remove('songs');
+    projectJson.remove('setlists');
+    await db.insert('projects', _sanitizeForSql(projectJson), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> deleteProject(String id) async {
@@ -40,7 +53,9 @@ class DatabaseRepository {
     
     final songs = <Song>[];
     for (final row in results) {
-      final songBase = Song.fromJson(row);
+      final map = Map<String, dynamic>.from(row);
+      map['blocks'] = [];
+      final songBase = Song.fromJson(map);
       final blocks = await getBlocksForSong(songBase.id);
       songs.add(songBase.copyWith(blocks: blocks));
     }
@@ -52,7 +67,7 @@ class DatabaseRepository {
     final songJson = song.toJson();
     songJson.remove('blocks'); // Non stocké en colonne
     songJson['project_id'] = projectId; // Lien relationnel
-    await db.insert('songs', songJson, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('songs', _sanitizeForSql(songJson), conflictAlgorithm: ConflictAlgorithm.replace);
 
     // Sauvegarde en cascade des blocs
     await db.delete('blocks', where: 'song_id = ?', whereArgs: [song.id]);
@@ -61,7 +76,7 @@ class DatabaseRepository {
         final blockJson = block.toJson();
         blockJson['song_id'] = song.id;
         blockJson['sort_order'] = i;
-        await db.insert('blocks', blockJson, conflictAlgorithm: ConflictAlgorithm.replace);
+        await db.insert('blocks', _sanitizeForSql(blockJson), conflictAlgorithm: ConflictAlgorithm.replace);
     }
   }
 
@@ -74,7 +89,11 @@ class DatabaseRepository {
   Future<List<Block>> getBlocksForSong(String songId) async {
     final db = await _db;
     final results = await db.query('blocks', where: 'song_id = ?', whereArgs: [songId], orderBy: 'sort_order ASC');
-    return results.map((e) => Block.fromJson(e)).toList();
+    return results.map((e) {
+      final map = Map<String, dynamic>.from(e);
+      if (map['tts_enabled'] is int) map['tts_enabled'] = map['tts_enabled'] == 1;
+      return Block.fromJson(map);
+    }).toList();
   }
 
   // --- SETLISTS ---
@@ -84,7 +103,9 @@ class DatabaseRepository {
     
     final setlists = <Setlist>[];
     for (final row in results) {
-      final setlistBase = Setlist.fromJson(row);
+      final map = Map<String, dynamic>.from(row);
+      map['songs'] = [];
+      final setlistBase = Setlist.fromJson(map);
       
       // On récupère les ID des chansons via la table de liaison
       final songRefs = await db.query('setlist_songs', where: 'setlist_id = ?', whereArgs: [setlistBase.id], orderBy: 'sort_order ASC');
@@ -92,7 +113,9 @@ class DatabaseRepository {
       for (final ref in songRefs) {
          final songRes = await db.query('songs', where: 'id = ?', whereArgs: [ref['song_id']]);
          if (songRes.isNotEmpty) {
-           final song = Song.fromJson(songRes.first);
+           final songMap = Map<String, dynamic>.from(songRes.first);
+           songMap['blocks'] = [];
+           final song = Song.fromJson(songMap);
            final blocks = await getBlocksForSong(song.id);
            songs.add(song.copyWith(blocks: blocks));
          }
@@ -107,7 +130,7 @@ class DatabaseRepository {
     final setlistJson = setlist.toJson();
     setlistJson.remove('songs');
     setlistJson['project_id'] = projectId;
-    await db.insert('setlists', setlistJson, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('setlists', _sanitizeForSql(setlistJson), conflictAlgorithm: ConflictAlgorithm.replace);
 
     await db.delete('setlist_songs', where: 'setlist_id = ?', whereArgs: [setlist.id]);
     for (int i = 0; i < setlist.songs.length; i++) {
