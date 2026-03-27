@@ -29,10 +29,16 @@
 flutter doctor
 ```
 Résultat attendu : tout ✅ sauf éventuellement les licences Android.
-Si licences pas acceptées :
+
+> ⚠️ **Prérequis licences** : les **Android SDK Command-line Tools** doivent être installés.  
+> Si `flutter doctor --android-licenses` retourne *"sdkmanager not found"* :  
+> Android Studio → ⚙️ SDK Manager → onglet **SDK Tools** → cocher **Android SDK Command-line Tools (latest)** → Apply
+
+Si licences pas encore acceptées, lancer :
 ```powershell
 flutter doctor --android-licenses
 ```
+Taper `y` à chaque invite.
 
 ---
 
