@@ -1,7 +1,38 @@
 # Journal de développement — Metronome for Live
 
 > Ce fichier est la **source de vérité** pour reprendre le développement sur n'importe quelle machine.  
-> Mis à jour le : 25 mars 2026
+> Mis à jour le : 27 mars 2026
+
+---
+
+## 💻 Environnement de développement (poste actuel)
+
+> ⚠️ **À lire en priorité au démarrage d'une nouvelle session** pour reconfigurer l'environnement si nécessaire.
+
+| Outil | Version | Emplacement | Statut |
+|---|---|---|---|
+| **Git** | 2.53.0 | Dans le PATH système | ✅ OK |
+| **Flutter SDK** | 3.41.5 (stable) | `E:\flutter` | ✅ OK |
+| **Dart** | Inclus dans Flutter | `E:\flutter\bin` | ✅ OK |
+| **Android Studio** | Panda 2 (Jellyfish+) | Chemin par défaut | ✅ Installé |
+| **Android SDK** | Via Android Studio Wizard | `%LOCALAPPDATA%\Android\Sdk` (par défaut) | ✅ Téléchargé via wizard |
+| **VS Code** | 1.108.1 | Dans le PATH | ✅ OK |
+| **Extensions VS Code** | Flutter + Dart + Riverpod Snippets | — | ✅ Installées |
+| **Visual Studio Build Tools** | 2022 17.x | — | ✅ OK (détecté par flutter doctor) |
+
+### PATH utilisateur
+- `E:\flutter\bin` a été ajouté au PATH utilisateur Windows le 27/03/2026
+- Si Flutter n'est plus reconnu après reboot : Paramètres Windows → Variables d'environnement → PATH utilisateur → vérifier que `E:\flutter\bin` est présent
+
+### Vérification rapide (à faire en début de session)
+```powershell
+flutter doctor
+```
+Résultat attendu : tout ✅ sauf éventuellement les licences Android.
+Si licences pas acceptées :
+```powershell
+flutter doctor --android-licenses
+```
 
 ---
 
@@ -12,23 +43,24 @@
 
 ### ✅ Fait
 - Cahier des charges complet rédigé et pushé (`cahier_des_charges_metronome.md`)
-- README créé
-- Repo git initialisé sur `master`
-
-### ⏳ En cours / Bloqué
-- Installation Flutter en cours sur le poste de dev Windows (téléchargement interrompu, à reprendre)
+- README et DEVLOG créés
+- Repo git initialisé sur `master`, remote GitHub configuré
+- Flutter 3.41.5 installé dans `E:\flutter` et PATH configuré
+- Android Studio Panda 2 installé avec SDK Android (via Setup Wizard)
+- VS Code avec extensions Flutter/Dart/Riverpod installées
 
 ### 🔜 Prochaines étapes immédiates (dans cet ordre)
 
-1. **Installer Flutter** sur la nouvelle machine
-   - Windows : https://docs.flutter.dev/get-started/install/windows/mobile
-   - Télécharger le ZIP stable, extraire dans `C:\src\flutter`, ajouter `C:\src\flutter\bin` au PATH
-   - Vérifier avec `flutter doctor`
+1. **Accepter les licences Android** (si pas encore fait)
+   ```powershell
+   flutter doctor --android-licenses
+   ```
+   Taper `y` à chaque invite.
 
 2. **Créer le projet Flutter** dans le dossier cloné
-   ```bash
-   git clone https://github.com/Herve-obe/Metronome_for_live.git
-   cd Metronome_for_live
+   ```powershell
+   # Le repo est déjà cloné dans E:\METRONOME APP
+   # Se placer dans le dossier et créer le projet Flutter
    flutter create . --org com.herveobe --project-name metronome_for_live
    ```
 
@@ -188,4 +220,4 @@ Projet (ex: "Mon Groupe")
 
 ---
 
-*Document maintenu par Antigravity AI — Session du 25 mars 2026*
+*Document maintenu par Antigravity AI — Sessions des 25 et 27 mars 2026*
